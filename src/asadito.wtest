@@ -1,0 +1,41 @@
+import asadito.*
+
+describe "test para el punto 1" {
+
+	test "Un vikingo Thrall granjero puede ir a una expedicion" {
+		assert.that(false)
+	}
+
+}
+
+describe "test para el punto 2" {
+	
+	method initialize() {
+	}
+
+	test "Una expedicion vale la pena" {
+		assert.that(false)
+	}
+
+}
+
+describe "test para el punto 3" {
+
+	method initialize() {
+	}
+
+	test "Hacer una expedicion en una capital" {
+		assert.equals(3, 3)
+	}
+
+}
+
+describe "test para el punto 4" {
+
+
+	test "Hacer que un vikingo Jarl suba de casta" {
+		assert.equals(3, 3)
+	}
+
+}
+
