@@ -1,40 +1,155 @@
 import asadito.*
+import wollok.game.*
 
 describe "test para el punto 1" {
 
-	test "Un vikingo Thrall granjero puede ir a una expedicion" {
-		assert.that(false)
+	const comensalQuePide = osky
+	const comensalQueDa = moni
+
+	method initialize() {
+		comensalQueDa.agregarElementoCercano([ "sal", "pimienta", "vino" ])
+	}
+
+	test "Si una persona no tiene el elemento no puede pasarlo" {
+		assert.throwsExceptionWithMessage("La persona no tiene el elemento y no puede pasarlo", { comensalQueDa.darElemento(comensalQuePide, "salero")})
+	}
+
+	test "Una persona sorda pasa el primer elemento - y este justo es el que es" {
+		comensalQueDa.darElemento(comensalQuePide, "sal")
+		comensalQueDa.criterioPasarElemento(sordo)
+		assert.notThat(comensalQueDa.tieneElElemento("sal"))
+		assert.that(comensalQuePide.tieneElElemento("sal"))
+	}
+
+	test "Una persona irritable pasa todos los elementos" {
+		comensalQueDa.criterioPasarElemento(irritable)
+		comensalQueDa.darElemento(comensalQuePide, "sal")
+		assert.that(comensalQueDa.elementoCercano().isEmpty())
+		assert.equals([ "sal", "pimienta", "vino" ], comensalQuePide.elementoCercano())
+	}
+
+	test "Una persona movediza cambia de lugar por la persona que le pide el elemento" {
+		comensalQueDa.criterioPasarElemento(movedizo)
+		comensalQueDa.posicion(game.at(1, 1))
+		comensalQuePide.posicion(game.at(2, 2))
+		comensalQueDa.darElemento(comensalQuePide, "sal")
+		assert.equals(game.at(2, 2), comensalQueDa.posicion())
+		assert.equals(game.at(1, 1), comensalQuePide.posicion())
+	}
+
+	test "Una persona obediente pasa el elemento que se pidio" {
+		comensalQueDa.criterioPasarElemento(obediente)
+		comensalQueDa.darElemento(comensalQuePide, "sal")
+		assert.notThat(comensalQueDa.tieneElElemento("sal"))
+		assert.that(comensalQuePide.tieneElElemento("sal"))
 	}
 
 }
 
 describe "test para el punto 2" {
-	
+
+	const comensalVegetariano = osky
+
 	method initialize() {
 	}
 
-	test "Una expedicion vale la pena" {
-		assert.that(false)
+	test "Una persona vegetariana puede comer algo que no tenga carne" {
+		const comida = new Comida(esCarne = false)
+		assert.that(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona vegetariana no puede comer algo que tenga carne" {
+		const comida = new Comida(esCarne = true)
+		assert.notThat(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona dietetica puede comer algo que tenga menos calorias que lo recomendado por la OMS" {
+		comensalVegetariano.criterioComida(dietetico)
+		const comida = new Comida(esCarne = false)
+		assert.that(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona dieteticano  puede comer algo que tenga mayor calorias que lo recomendado por la OMS" {
+		comensalVegetariano.criterioComida(dietetico)
+		const comida = new Comida(esCarne = true, calorias = 501)
+		assert.notThat(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona alternada puede comer una vez si y otra no" {
+		comensalVegetariano.criterioComida(new Alternado())
+		const comida = new Comida(esCarne = true, calorias = 501)
+		assert.notThat(comensalVegetariano.puedeComer(comida))
+		assert.that(comensalVegetariano.puedeComer(comida))
+		assert.notThat(comensalVegetariano.puedeComer(comida))
+		assert.that(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona combinada puede comer la comida si todos sus criterios lo dejan" {
+		const combinada = new Combinada()
+		combinada.agregarCriteriosComida([ vegetariano, dietetico ])
+		comensalVegetariano.criterioComida(combinada)
+		// comensalVegetariano.
+		const comida = new Comida(esCarne = false, calorias = 50)
+		assert.that(comensalVegetariano.puedeComer(comida))
+	}
+
+	test "Una persona combinada no puede comer la comida si alguno de sus criterios no lo dejan" {
+		const combinada = new Combinada()
+		combinada.agregarCriteriosComida([ vegetariano, dietetico ])
+		comensalVegetariano.criterioComida(combinada)
+		// comensalVegetariano.
+		const comida = new Comida(esCarne = false, calorias = 501)
+		assert.notThat(comensalVegetariano.puedeComer(comida))
 	}
 
 }
 
 describe "test para el punto 3" {
 
-	method initialize() {
+	const comensalVegetariano = osky
+
+	test "Una persona esta pipon cuando alguna de sus comidas tiene mas de 500 calorias" {
+		const comida1 = new Comida(esCarne = false, calorias = 501)
+		const comida2 = new Comida(esCarne = false, calorias = 50)
+		comensalVegetariano.agregarComidas([ comida1, comida2 ])
+		assert.that(comensalVegetariano.estaPipon())
 	}
 
-	test "Hacer una expedicion en una capital" {
-		assert.equals(3, 3)
+	test "Una persona no esta pipon cuando ninguna de sus comidas tiene mas de 500 calorias" {
+		const comida1 = new Comida(esCarne = false, calorias = 499)
+		const comida2 = new Comida(esCarne = false, calorias = 50)
+		comensalVegetariano.agregarComidas([ comida1, comida2 ])
+		assert.notThat(comensalVegetariano.estaPipon())
 	}
 
 }
 
 describe "test para el punto 4" {
 
+	const comida1 = new Comida(esCarne = false, calorias = 499)
+	const comida2 = new Comida(esCarne = true, calorias = 50)
 
-	test "Hacer que un vikingo Jarl suba de casta" {
-		assert.equals(3, 3)
+	test "El comenzal osky la pasa bien si comio algo" {
+		osky.agregarComidas([ comida1, comida2 ])
+		assert.that(osky.laEstaPasandoBien())
+	}
+
+	test "El comenzal moni la pasa bien si comio algo y se sento en la posicion que le gusta" {
+		moni.agregarComidas([ comida1, comida2 ])
+		assert.that(moni.laEstaPasandoBien())
+	}
+
+	test "El comenzal facu la pasa bien si comio algo y tiene carne" {
+		facu.agregarComidas([ comida1, comida2 ])
+		assert.that(facu.laEstaPasandoBien())
+	}
+
+	test "El comenzal vero la pasa bien si comio algo y no tiene mas de 3 elementos cerca" {
+		vero.agregarComidas([ comida1, comida2 ])
+		vero.agregarElementoCercano([ "sal", "pimiento", "vino" ])
+		assert.that(vero.laEstaPasandoBien())
+		vero.agregarElementoCercano([ "copa"])
+		assert.notThat(vero.laEstaPasandoBien())
 	}
 
 }
